@@ -27,13 +27,6 @@ deny[msg] {
 
 deny[msg] {
   kubernetes.is_role_binding
-  not startswith(name, "unittest-")
-
-  msg := sprintf("rolebinding %v does not start with unittest-. Use: {{ .Release.Name }}- in name", [name])
-}
-
-deny[msg] {
-  kubernetes.is_role_binding
   not subjects
 
   msg := sprintf("rolebinding %v does not have a subjects section", [name])

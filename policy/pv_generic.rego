@@ -6,12 +6,6 @@ name = input.metadata.name
 namespace = input.metadata.namespace
 spec = input.spec
 
-deny[msg] {
-  kubernetes.is_pv
-  not startswith(name, "unittest-")
-
-  msg := sprintf("pv %v does not start with unittest-. Use: {{ .Release.Name }}- in name", [name])
-}
 
 deny[msg] {
   kubernetes.is_pv

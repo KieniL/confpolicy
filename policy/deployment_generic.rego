@@ -45,13 +45,6 @@ deny[msg] {
 
 deny[msg] {
   kubernetes.is_deployment
-  not startswith(name, "unittest-")
-
-  msg := sprintf("deployment %v does not start with unittest-. Use: {{ .Release.Name }}- in name", [name])
-}
-
-deny[msg] {
-  kubernetes.is_deployment
   not required_selector_labels
 
   msg := sprintf("Does not contain label app in deployment %v", [name])

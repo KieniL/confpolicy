@@ -22,13 +22,6 @@ deny[msg] {
 
 deny[msg] {
   kubernetes.is_poddisruptionbudget
-  not startswith(name, "unittest-")
-
-  msg := sprintf("poddisruptionbudget %v does not start with unittest-. Use: {{ .Release.Name }}- in name", [name])
-}
-
-deny[msg] {
-  kubernetes.is_poddisruptionbudget
   not spec.selector
 
   msg := sprintf("poddisruptionbudget %v does not have a selector", [name])

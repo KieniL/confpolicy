@@ -23,13 +23,6 @@ deny[msg] {
 
 deny[msg] {
   kubernetes.is_pod
-  not startswith(name, "unittest-")
-
-  msg := sprintf("pod %v does not start with unittest-. Use: {{ .Release.Name }}- in name", [name])
-}
-
-deny[msg] {
-  kubernetes.is_pod
   not containers
 
   msg := sprintf("pod %v has no containers provided", [name])

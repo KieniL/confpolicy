@@ -11,13 +11,6 @@ required_selector_labels {
 	spec.selector["app"]
 }
 
-deny[msg] {
-  kubernetes.is_hpa
-  not startswith(name, "unittest-")
-
-  msg := sprintf("horizontalpodautoscaler %v does not start with unittest-. Use: {{ .Release.Name }}- in name", [name])
-}
-
 
 deny[msg] {
   kubernetes.is_hpa

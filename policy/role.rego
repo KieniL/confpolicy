@@ -25,12 +25,6 @@ deny[msg] {
   msg := sprintf("role %v has no namespace provided", [name])
 }
 
-deny[msg] {
-  kubernetes.is_role
-  not startswith(name, "unittest-")
-
-  msg := sprintf("role %v does not start with unittest-. Use: {{ .Release.Name }}- in name", [name])
-}
 
 
 deny[msg] {

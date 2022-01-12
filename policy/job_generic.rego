@@ -25,13 +25,6 @@ deny[msg] {
   msg := sprintf("job %v has no namespace provided", [name])
 }
 
-deny[msg] {
-  kubernetes.is_job
-  not startswith(name, "unittest-")
-
-  msg := sprintf("job %v does not start with unittest-. Use: {{ .Release.Name }}- in name", [name])
-}
-
 
 deny[msg] {
   kubernetes.is_job

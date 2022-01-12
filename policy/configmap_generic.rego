@@ -23,13 +23,6 @@ deny[msg] {
 
 deny[msg] {
   kubernetes.is_configmap
-  not startswith(name, "unittest-")
-
-  msg := sprintf("configmap %v does not start with unittest-. Use: {{ .Release.Name }}- in name", [name])
-}
-
-deny[msg] {
-  kubernetes.is_configmap
   not data
 
   msg := sprintf("Does not contain data section in configmap %v", [input])

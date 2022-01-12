@@ -22,13 +22,6 @@ deny[msg] {
 
 deny[msg] {
   kubernetes.is_networkpolicy
-  not startswith(name, "unittest-")
-
-  msg := sprintf("networkpolicy %v does not start with unittest-. Use: {{ .Release.Name }}- in name", [name])
-}
-
-deny[msg] {
-  kubernetes.is_networkpolicy
   not spec.ingress
 
   msg := sprintf("networkpolicy %v has no ingress provided", [name])
