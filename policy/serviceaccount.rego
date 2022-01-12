@@ -19,10 +19,4 @@ deny[msg] {
   msg := sprintf("serviceaccount %v has no namespace provided", [name])
 }
 
-deny[msg] {
-  kubernetes.is_service_account
-  not startswith(name, "unittest-")
-
-  msg := sprintf("serviceaccount %v does not start with unittest-. Use: {{ .Release.Name }}- in name", [name])
-}
 

@@ -10,12 +10,6 @@ required_selector_labels {
 	spec.selector["app.kubernetes.io/name"]
 }
 
-deny[msg] {
-  kubernetes.is_service
-  not startswith(name, "unittest-")
-
-  msg := sprintf("service %v does not start with", [name])
-}
 
 deny[msg] {
   kubernetes.is_service
