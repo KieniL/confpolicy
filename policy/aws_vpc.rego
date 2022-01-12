@@ -1,4 +1,5 @@
 package main
+
 import data.aws
 
 deny[msg] {
