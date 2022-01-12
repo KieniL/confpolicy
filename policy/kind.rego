@@ -16,12 +16,12 @@ allowed_kinds = [
 	"PodDisruptionBudget",
 	"NetworkPolicy",
 	"Pod",
-	"PodSecurityPolicy"
+	"PodSecurityPolicy",
 ]
 
 allowed_subject_kinds = [
 	"ServiceAccount",
-	"Group"
+	"Group",
 ]
 
 exists_in_list(element, list) {
@@ -33,5 +33,5 @@ deny_not_allowed_kind[msg] {
 	val := input.kind
 	not exists_in_list(input.kind, allowed_kinds)
 
-  msg = sprintf("%v is not a allowed kind", [val])
+	msg = sprintf("%v is not a allowed kind", [val])
 }

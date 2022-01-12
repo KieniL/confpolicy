@@ -3,33 +3,35 @@ package main
 import data.kubernetes
 
 name = input.metadata.name
+
 namespace = input.metadata.namespace
+
 spec = input.spec
 
 deny[msg] {
-  kubernetes.is_networkpolicy
-  not name
+	kubernetes.is_networkpolicy
+	not name
 
-  msg := sprintf("networkpolicy %v has no name provided", [name])
+	msg := sprintf("networkpolicy %v has no name provided", [name])
 }
 
 deny[msg] {
-  kubernetes.is_networkpolicy
-  not namespace
+	kubernetes.is_networkpolicy
+	not namespace
 
-  msg := sprintf("networkpolicy %v has no namespace provided", [name])
+	msg := sprintf("networkpolicy %v has no namespace provided", [name])
 }
 
 deny[msg] {
-  kubernetes.is_networkpolicy
-  not spec.ingress
+	kubernetes.is_networkpolicy
+	not spec.ingress
 
-  msg := sprintf("networkpolicy %v has no ingress provided", [name])
+	msg := sprintf("networkpolicy %v has no ingress provided", [name])
 }
 
 deny[msg] {
-  kubernetes.is_networkpolicy
-  not spec.egress
+	kubernetes.is_networkpolicy
+	not spec.egress
 
-  msg := sprintf("networkpolicy %v has no egress provided", [name])
+	msg := sprintf("networkpolicy %v has no egress provided", [name])
 }

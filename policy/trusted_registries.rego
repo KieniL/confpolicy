@@ -2,9 +2,9 @@ package main
 
 trusted_registries = [
 	"luke19",
-  "curlimages"
+	"curlimages",
 ]
 
 startswith_in_list(element, list) {
-  startswith(element, list[_])
+	startswith(element, list[_])
 }

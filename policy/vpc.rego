@@ -47,22 +47,20 @@ deny[msg] {
 
 deny[msg] {
 	not count(input.resource.aws_default_security_group.ident.ingress) < 1
-  msg = "No ingress on default security group is allowed"
+	msg = "No ingress on default security group is allowed"
 }
 
 deny[msg] {
-	not count(input.resource.aws_default_security_group.ident.egress) <1
-  msg = "No egress on default security group is allowed"
+	not count(input.resource.aws_default_security_group.ident.egress) < 1
+	msg = "No egress on default security group is allowed"
 }
 
 deny[msg] {
-  not input.resource.aws_default_security_group.ident.vpc_id
-  msg = "Define vpc_id in securitygroup"
+	not input.resource.aws_default_security_group.ident.vpc_id
+	msg = "Define vpc_id in securitygroup"
 }
 
 deny[msg] {
 	not contains(input.resource.aws_default_security_group.ident.vpc_id, "aws_vpc.main.id")
 	msg = "Securitygroup vpc_id should point to the vpc with aws_vpc.main.id"
 }
-
-

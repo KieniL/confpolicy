@@ -1,13 +1,13 @@
 package main
 
 deny[msg] {
-  not input.resource.aws_subnet.public
-  msg = "Define public subnet resource"
+	not input.resource.aws_subnet.public
+	msg = "Define public subnet resource"
 }
 
 deny[msg] {
-  not re_match(".*public", input.resource.aws_subnet.public.tags.Name)
-  msg = "Public subnet missing tag `Name`"
+	not re_match(".*public", input.resource.aws_subnet.public.tags.Name)
+	msg = "Public subnet missing tag `Name`"
 }
 
 deny[msg] {
@@ -26,13 +26,13 @@ deny[msg] {
 }
 
 deny[msg] {
-  not re_match(".*public", input.resource.aws_subnet.public.tags.state)
-  msg = "Public subnet missing tag `state`"
+	not re_match(".*public", input.resource.aws_subnet.public.tags.state)
+	msg = "Public subnet missing tag `state`"
 }
 
 deny[msg] {
-  not contains(input.resource.aws_subnet.public.availability_zone, "data.aws_availability_zones.available")
-  msg = "Use data resources to interpolate availability zone"
+	not contains(input.resource.aws_subnet.public.availability_zone, "data.aws_availability_zones.available")
+	msg = "Use data resources to interpolate availability zone"
 }
 
 deny[msg] {

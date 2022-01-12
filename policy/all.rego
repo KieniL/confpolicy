@@ -1,6 +1,5 @@
 package main
 
-
 required_labels {
 	input.metadata.labels["app.kubernetes.io/name"]
 	input.metadata.labels["app.kubernetes.io/instance"]

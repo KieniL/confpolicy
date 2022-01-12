@@ -9,41 +9,39 @@ is_deployment {
 }
 
 is_configmap {
-  input.kind = "ConfigMap"
+	input.kind = "ConfigMap"
 }
 
 is_secret {
-  input.kind = "Secret"
+	input.kind = "Secret"
 }
 
 is_pv {
-  input.kind = "PersistentVolume"
+	input.kind = "PersistentVolume"
 }
 
 is_pvc {
-  input.kind = "PersistentVolumeClaim"
+	input.kind = "PersistentVolumeClaim"
 }
 
-is_ingress{
-  input.kind = "Ingress"
+is_ingress {
+	input.kind = "Ingress"
 }
 
 is_hpa {
-  input.kind = "HorizontalPodAutoscaler"
+	input.kind = "HorizontalPodAutoscaler"
 }
-
 
 is_job {
-  input.kind = "Job"
+	input.kind = "Job"
 }
 
-
 is_role {
-  input.kind = "Role"
+	input.kind = "Role"
 }
 
 is_role_binding {
-  input.kind = "RoleBinding"
+	input.kind = "RoleBinding"
 }
 
 is_service_account {
@@ -51,13 +49,13 @@ is_service_account {
 }
 
 is_pod {
-  input.kind = "Pod"
+	input.kind = "Pod"
 }
 
 is_poddisruptionbudget {
-  input.kind = "PodDisruptionBudget"
+	input.kind = "PodDisruptionBudget"
 }
 
 is_networkpolicy {
-  input.kind = "NetworkPolicy"
+	input.kind = "NetworkPolicy"
 }
