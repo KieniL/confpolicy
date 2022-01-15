@@ -91,3 +91,11 @@ is_key_vault_secret {
 is_policy_assignment {
 	input.resource.azurerm_policy_assignment
 }
+
+is_linux_scale_set {
+	input.resource.azurerm_linux_virtual_machine_scale_set
+}
+
+is_autoscaler_setting {
+	input.resource.azurerm_monitor_autoscale_setting
+}
