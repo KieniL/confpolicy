@@ -1,6 +1,6 @@
 package main
 
-import data.docker
+import docker
 
 suspicious_env_keys = [
 	"passwd",
