@@ -28,6 +28,10 @@ is_ingress {
 	input.kind = "Ingress"
 }
 
+is_nginx_ingress {
+	input.metadata.annotations["app.kubernetes.io/name"] = "nginx"
+}
+
 is_hpa {
 	input.kind = "HorizontalPodAutoscaler"
 }
