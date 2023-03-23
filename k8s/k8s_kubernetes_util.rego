@@ -29,7 +29,7 @@ is_ingress {
 }
 
 is_nginx_ingress {
-	input.metadata.annotations["app.kubernetes.io/name"] = "nginx"
+	input.metadata.annotations["kubernetes.io/ingress.class"] = "nginx"
 }
 
 is_hpa {
