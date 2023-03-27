@@ -210,6 +210,7 @@ deny[msg] {
 deny[msg] {
 	kubernetes.is_deployment
 	container := template_spec.containers[_]
+	container.securityContext
 	container.securityContext.privileged == true
 
 	msg := sprintf("at least one container in deployment %v is privileged which is not allowed", [name])
@@ -218,7 +219,17 @@ deny[msg] {
 deny[msg] {
 	kubernetes.is_deployment
 	container := template_spec.containers[_]
-	container.securityContext.readOnlyRootFilesystem == true
+	container.securityContext
+	not container.securityContext.privileged
+
+	msg := sprintf("at least one container in deployment %v is privileged which is not allowed", [name])
+}
+
+deny[msg] {
+	kubernetes.is_deployment
+	container := template_spec.containers[_]
+	container.securityContext
+	container.securityContext.readOnlyRootFilesystem == false
 
 	msg := sprintf("at least one container in deployment %v has a writable Filesystem", [name])
 }
@@ -226,6 +237,16 @@ deny[msg] {
 deny[msg] {
 	kubernetes.is_deployment
 	container := template_spec.containers[_]
+	container.securityContext
+	not container.securityContext.readOnlyRootFilesystem
+
+	msg := sprintf("at least one container in deployment %v has a writable Filesystem", [name])
+}
+
+deny[msg] {
+	kubernetes.is_deployment
+	container := template_spec.containers[_]
+	container.securityContext
 	container.securityContext.runAsNonRoot == false
 
 	msg := sprintf("at least one container in deployment %v has the permission to be executed as root.", [name])
@@ -234,9 +255,19 @@ deny[msg] {
 deny[msg] {
 	kubernetes.is_deployment
 	container := template_spec.containers[_]
+	container.securityContext
+	not container.securityContext.runAsNonRoot
+
+	msg := sprintf("at least one container in deployment %v has the permission to be executed as root.", [name])
+}
+
+deny[msg] {
+	kubernetes.is_deployment
+	container := template_spec.containers[_]
+	container.securityContext
 	not container.securityContext.capabilities
 
-	msg := sprintf("at least one container in deployment %v is not removing linux capabilities", [name])
+	msg := sprintf("at least one container in deployment %v is not removing linux capabilities via securityContext.capabilities", [name])
 }
 
 deny[msg] {
