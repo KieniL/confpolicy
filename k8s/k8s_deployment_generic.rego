@@ -241,6 +241,22 @@ deny[msg] {
 	msg := sprintf("at least one emptydir volume in deployment %v does not have a sizelimit ", [name])
 }
 
+deny[msg] {
+	kubernetes.is_deployment
+	container := input.spec.template.spec.containers[_]
+	not container.livenessProbe
+
+	msg := sprintf("at least one container in deployment %v does not have a livenessprobe", [name])
+}
+
+deny[msg] {
+	kubernetes.is_deployment
+	container := input.spec.template.spec.containers[_]
+	not container.livenessProbe
+
+	msg := sprintf("at least one container in deployment %v does not have a readinessprobe", [name])
+}
+
 #deny[msg] {
 #  kubernetes.is_deployment
 #  not exists_in_list(name, not_needed_for_jolokia)
