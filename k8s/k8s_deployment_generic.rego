@@ -211,27 +211,9 @@ deny[msg] {
 	kubernetes.is_deployment
 	container := template_spec.containers[_]
 	container.securityContext
-	container.securityContext.privileged == true
+	container.securityContext.privileged
 
 	msg := sprintf("at least one container in deployment %v is privileged which is not allowed", [name])
-}
-
-deny[msg] {
-	kubernetes.is_deployment
-	container := template_spec.containers[_]
-	container.securityContext
-	not container.securityContext.privileged
-
-	msg := sprintf("at least one container in deployment %v is privileged which is not allowed", [name])
-}
-
-deny[msg] {
-	kubernetes.is_deployment
-	container := template_spec.containers[_]
-	container.securityContext
-	container.securityContext.readOnlyRootFilesystem == false
-
-	msg := sprintf("at least one container in deployment %v has a writable Filesystem", [name])
 }
 
 deny[msg] {
@@ -247,9 +229,9 @@ deny[msg] {
 	kubernetes.is_deployment
 	container := template_spec.containers[_]
 	container.securityContext
-	container.securityContext.runAsNonRoot == false
+	not container.securityContext.allowPrivilegeEscalation
 
-	msg := sprintf("at least one container in deployment %v has the permission to be executed as root.", [name])
+	msg := sprintf("at least one container in deployment %v allows privilege escalation", [name])
 }
 
 deny[msg] {
