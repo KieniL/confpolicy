@@ -229,7 +229,7 @@ deny[msg] {
 	kubernetes.is_deployment
 	container := template_spec.containers[_]
 	container.securityContext
-	not container.securityContext.allowPrivilegeEscalation
+	container.securityContext.allowPrivilegeEscalation
 
 	msg := sprintf("at least one container in deployment %v allows privilege escalation", [name])
 }
