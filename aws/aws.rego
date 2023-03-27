@@ -47,3 +47,21 @@ is_sns_topic {
 is_sns_topic_subscription {
 	input.resource.aws_sns_topic_subscription
 }
+
+is_lb {
+	input.resource.aws_lb
+}
+
+is_alb {
+	is_lb
+	input.resource.aws_lb.load_balancer_type = "application"
+}
+
+is_nlb {
+	is_lb
+	input.resource.aws_lb.load_balancer_type = "network"
+}
+
+is_lb_listener {
+	input.resource.aws_lb_listener
+}
