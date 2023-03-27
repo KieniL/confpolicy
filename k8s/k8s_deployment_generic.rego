@@ -202,9 +202,41 @@ deny[msg] {
 deny[msg] {
 	kubernetes.is_deployment
 	container := template_spec.containers[_]
+	not container.securityContext
+
+	msg := sprintf("at least one container in deployment %v is missing securityContext", [name])
+}
+
+deny[msg] {
+	kubernetes.is_deployment
+	container := template_spec.containers[_]
 	container.securityContext.privileged == true
 
 	msg := sprintf("at least one container in deployment %v is privileged which is not allowed", [name])
+}
+
+deny[msg] {
+	kubernetes.is_deployment
+	container := template_spec.containers[_]
+	container.securityContext.readOnlyRootFilesystem == true
+
+	msg := sprintf("at least one container in deployment %v has a writable Filesystem", [name])
+}
+
+deny[msg] {
+	kubernetes.is_deployment
+	container := template_spec.containers[_]
+	container.securityContext.runAsNonRoot == false
+
+	msg := sprintf("at least one container in deployment %v has the permission to be executed as root.", [name])
+}
+
+deny[msg] {
+	kubernetes.is_deployment
+	container := template_spec.containers[_]
+	not container.securityContext.capabilities
+
+	msg := sprintf("at least one container in deployment %v is not removing linux capabilities", [name])
 }
 
 deny[msg] {
