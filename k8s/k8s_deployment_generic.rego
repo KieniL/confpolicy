@@ -33,9 +33,8 @@ required_selector_labels {
 }
 
 deny_missing_name[msg] {
-	not input.metadata.name
-	#kubernetes.is_deployment
-	#not name
+	kubernetes.is_deployment
+	not name
 
 	msg := sprintf("deployment %v has no name provided", [name])
 }
@@ -287,7 +286,7 @@ deny[msg] {
 	msg := sprintf("at least one emptydir volume in deployment %v does not have a sizelimit ", [name])
 }
 
-deny[msg] {
+deny_missing_liveness[msg] {
 	kubernetes.is_deployment
 	container := input.spec.template.spec.containers[_]
 	not container.livenessProbe
@@ -295,10 +294,10 @@ deny[msg] {
 	msg := sprintf("at least one container in deployment %v does not have a livenessprobe", [name])
 }
 
-deny[msg] {
+deny_missing_readiness[msg] {
 	kubernetes.is_deployment
 	container := input.spec.template.spec.containers[_]
-	not container.livenessProbe
+	not container.readinessProbe
 
 	msg := sprintf("at least one container in deployment %v does not have a readinessprobe", [name])
 }
