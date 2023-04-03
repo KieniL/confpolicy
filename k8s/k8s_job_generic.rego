@@ -110,14 +110,6 @@ deny[msg] {
 deny[msg] {
 	kubernetes.is_job
 	container := input.spec.template.spec.containers[_]
-	not container.resources.limits.cpu
-
-	msg := sprintf("at least one container in job %v has no cpu limits section", [name])
-}
-
-deny[msg] {
-	kubernetes.is_job
-	container := input.spec.template.spec.containers[_]
 	not container.resources.requests.memory
 
 	msg := sprintf("at least one container in job %v has no memory requests section", [name])

@@ -8,48 +8,74 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: test-ansparservice
+  name: unittest-ansparservice
   namespace: test
   labels:
-    app.kubernetes.io/name: test-ansparservice
-    app.kubernetes.io/instance: test-ansparservice
+    app.kubernetes.io/name: unittest-ansparservice
+    app.kubernetes.io/instance: unittest-ansparservice
     app.kubernetes.io/version: "1.0"
-    app.kubernetes.io/component: test-ansparservice
+    app.kubernetes.io/component: unittest-ansparservice
     app.kubernetes.io/part-of: test
     app.kubernetes.io/managed-by: helm
     owner: KieniL
 spec:
   selector:
     matchLabels:
-      app: test-ansparservice
+      app: unittest-ansparservice
   minReadySeconds: 10
   template:
     metadata:
       labels:
-        app: test-ansparservice
+        app: unittest-ansparservice
         action: jwt-consumer
     spec:
-      serviceAccountName: test-ansparservice-sa
+      serviceAccountName: unittest-ansparservice-sa
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: unittest-ansparservice
+              topologyKey: kubernetes.io/hostname
+            weight: 100
       terminationGracePeriodSeconds: 40
       volumes:
       - name: tmp
         emptyDir:
           medium: Memory
           sizeLimit: 200Mi
+      securityContext:
+        runAsUser: 20000
+        runAsGroup: 20000        
+        runAsNonRoot: true
+        seLinuxOptions:
+          level: "s0:c123,c456"
       containers:
-      - name:  test-ansparservice
-        image: luke19/familyansparservice@0.1
+      - name:  unittest-ansparservice
+        image: luke19/familyansparservice@sha256:bc4e6da1728b94420600b3cf830650010595b99bd42e30872866700e55501332
         imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 20000
+          runAsGroup: 20000
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          privileged: false
+          capabilities:
+            drop:
+              - all
+          seLinuxOptions:
+            level: "s0:c123,c456"
         volumeMounts:
         - mountPath: /app/tmp
           name: tmp
         resources:
           limits:
             memory: 512Mi
-            cpu: 1000m
           requests:
-            memory: 256Mi
-            cpu: 150m
+            memory: 512Mi
+            cpu: 500m
         env:
         - name: TZ
           valueFrom:
@@ -78,3 +104,17 @@ spec:
               key: ANSPAREN_LOG_LEVEL
         ports:
         - containerPort: 8080 #Expose containerport to the pod
+        livenessProbe: #Check that pod is ready
+          httpGet:
+            path: /actuator/health/liveness #path to check
+            port: 8080
+          initialDelaySeconds: 10 #start checking after 30 seconds
+          periodSeconds: 10 #check every 30 seconds
+          failureThreshold: 10
+        readinessProbe: #Check that pod is healthy
+          httpGet:
+            path: /actuator/health/readiness #path to check
+            port: 8080 #port to check
+          initialDelaySeconds: 15 #start checking after 15 seconds
+          periodSeconds: 10 #check every 3 seconds
+          failureThreshold: 10
