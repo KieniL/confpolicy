@@ -1,0 +1,24 @@
+on: push
+
+name: Validate
+
+jobs:
+  conftest-deployment:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: test deployment
+      uses: instrumenta/conftest-action@master
+      with:
+        files: testfiles/deployment.yaml
+        policy: ./
+
+  conftest-vpc:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: test vpc
+      uses: instrumenta/conftest-action@master
+      with:
+        files: testfiles/aws_vpc.tf
+        policy: ./

@@ -1,0 +1,80 @@
+# Missing metadta.annotations
+# Missing strategy
+# Missing template.metadata.annotations
+# missing affinity
+# missing securitycontext
+# missing liveness and readiness
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-ansparservice
+  namespace: test
+  labels:
+    app.kubernetes.io/name: test-ansparservice
+    app.kubernetes.io/instance: test-ansparservice
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/component: test-ansparservice
+    app.kubernetes.io/part-of: test
+    app.kubernetes.io/managed-by: helm
+    owner: KieniL
+spec:
+  selector:
+    matchLabels:
+      app: test-ansparservice
+  minReadySeconds: 10
+  template:
+    metadata:
+      labels:
+        app: test-ansparservice
+        action: jwt-consumer
+    spec:
+      serviceAccountName: test-ansparservice-sa
+      terminationGracePeriodSeconds: 40
+      volumes:
+      - name: tmp
+        emptyDir:
+          medium: Memory
+          sizeLimit: 200Mi
+      containers:
+      - name:  test-ansparservice
+        image: luke19/familyansparservice@0.1
+        imagePullPolicy: Always
+        volumeMounts:
+        - mountPath: /app/tmp
+          name: tmp
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: 1000m
+          requests:
+            memory: 256Mi
+            cpu: 150m
+        env:
+        - name: TZ
+          valueFrom:
+            configMapKeyRef:
+              name: test-config
+              key: TZ
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: test-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: test-config
+              key: DB_PORT
+        - name: AUTH_URL
+          valueFrom:
+            configMapKeyRef:
+              name: test-config
+              key: AUTH_URL
+        - name: ANSPAREN_LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: test-config
+              key: ANSPAREN_LOG_LEVEL
+        ports:
+        - containerPort: 8080 #Expose containerport to the pod

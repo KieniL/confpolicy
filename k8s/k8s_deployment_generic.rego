@@ -32,56 +32,56 @@ required_selector_labels {
 	spec.selector.matchLabels.app
 }
 
-deny[msg] {
+deny_missing_name[msg] {
 	kubernetes.is_deployment
 	not name
 
 	msg := sprintf("deployment %v has no name provided", [name])
 }
 
-deny[msg] {
+deny_missing_namespace[msg] {
 	kubernetes.is_deployment
 	not namespace
 
 	msg := sprintf("deployment %v has no namespace provided", [name])
 }
 
-deny[msg] {
+deny_missing_label_app[msg] {
 	kubernetes.is_deployment
 	not required_selector_labels
 
 	msg := sprintf("Does not contain label app in deployment %v", [name])
 }
 
-deny[msg] {
+deny_missing_containers[msg] {
 	kubernetes.is_deployment
 	not containers
 
 	msg := sprintf("Deployment %v has no containers provided", [name])
 }
 
-deny[msg] {
+deny_missing_terminationgraceperiodseconds[msg] {
 	kubernetes.is_deployment
 	not template_spec.terminationGracePeriodSeconds
 
 	msg := sprintf("Deployment %v has no terminationGracePeriodSeconds provided which should be there for a graceful shutdown", [name])
 }
 
-warn[msg] {
+warn_high_terminationgraceperiodseconds[msg] {
 	kubernetes.is_deployment
 	template_spec.terminationGracePeriodSeconds > 50
 
 	msg := sprintf("Deployment %v has a terminationGracePeriodSeconds above 50 seconds (reality: %v). This could lead to a long waiting before SIGKILL", [name, template_spec.terminationGracePeriodSeconds])
 }
 
-warn[msg] {
+warn_more_than_one_container[msg] {
 	kubernetes.is_deployment
 	not count(containers) <= 1
 
 	msg = sprintf("deployment %v has more than one container. Should not be done due to scaling. Use it wisely.", [name])
 }
 
-deny[msg] {
+deny_missing_container_name[msg] {
 	kubernetes.is_deployment
 	container := input.spec.template.spec.containers[_]
 	not container.name
@@ -89,7 +89,7 @@ deny[msg] {
 	msg := sprintf("at least one container in deployment %v has no name", [name])
 }
 
-deny[msg] {
+deny_missing_image[msg] {
 	kubernetes.is_deployment
 	container := input.spec.template.spec.containers[_]
 	not container.image
@@ -97,7 +97,7 @@ deny[msg] {
 	msg := sprintf("at least one container in deployment %v has no image", [name])
 }
 
-deny[msg] {
+deny_missing_imagePullPolicy[msg] {
 	kubernetes.is_deployment
 	container := input.spec.template.spec.containers[_]
 	not container.imagePullPolicy
@@ -105,7 +105,7 @@ deny[msg] {
 	msg := sprintf("at least one container in deployment %v has no imagePullPolicy", [name])
 }
 
-deny[msg] {
+deny_missing_resources[msg] {
 	kubernetes.is_deployment
 	container := input.spec.template.spec.containers[_]
 	not container.resources
@@ -113,7 +113,7 @@ deny[msg] {
 	msg := sprintf("at least one container in deployment %v has no resources section", [name])
 }
 
-deny[msg] {
+deny_missing_limits[msg] {
 	kubernetes.is_deployment
 	container := input.spec.template.spec.containers[_]
 	not container.resources.limits
@@ -286,7 +286,7 @@ deny[msg] {
 	msg := sprintf("at least one emptydir volume in deployment %v does not have a sizelimit ", [name])
 }
 
-deny[msg] {
+deny_missing_liveness[msg] {
 	kubernetes.is_deployment
 	container := input.spec.template.spec.containers[_]
 	not container.livenessProbe
@@ -294,10 +294,10 @@ deny[msg] {
 	msg := sprintf("at least one container in deployment %v does not have a livenessprobe", [name])
 }
 
-deny[msg] {
+deny_missing_readiness[msg] {
 	kubernetes.is_deployment
 	container := input.spec.template.spec.containers[_]
-	not container.livenessProbe
+	not container.readinessProbe
 
 	msg := sprintf("at least one container in deployment %v does not have a readinessprobe", [name])
 }
