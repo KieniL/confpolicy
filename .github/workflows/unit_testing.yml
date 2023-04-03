@@ -11,6 +11,7 @@ jobs:
       uses: instrumenta/conftest-action@master
       with:
         files: testfiles/deployment.yaml
+        policy: ./
 
   conftest-vpc:
     runs-on: ubuntu-latest
@@ -20,3 +21,4 @@ jobs:
       uses: instrumenta/conftest-action@master
       with:
         files: testfiles/aws_vpc.tf
+        policy: ./
