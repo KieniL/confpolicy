@@ -82,17 +82,3 @@ deny_alb_non_higher_tls1_2[msg] {
 
   msg := sprintf("lb_listener %v must use a secure SSL policy with TLS >= 1.2. See https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html", [listener])
 }
-
-# deny_non_tls1_2[msg] {
-# 	aws.is_lb_listener
-
-#   ssl_policy
-#   # and not has_tls_v12_or_higher(listener_attrs)) 
-#   # or
-#   # ((listener_attrs.protocol == "TCP" or listener_attrs.protocol == "TLS") and listener_attrs.ssl_policy == null and not has_tls_v1_or_higher(listener_attrs)) 
-
-#   msg := sprintf("Load balancer %v must use a secure SSL policy", [listener.protocol])
-
-# }
-
-#https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html
