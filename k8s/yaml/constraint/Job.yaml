@@ -1,0 +1,9 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: validate-job
+metadata:
+  name: validate-job
+spec:
+  match:
+    kinds:
+    - apiGroups: ["batch"]
+      kinds: [Job]

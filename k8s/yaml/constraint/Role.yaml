@@ -1,0 +1,9 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: validate-role
+metadata:
+  name: validate-role
+spec:
+  match:
+    kinds:
+    - apiGroups: ["rbac.authorization.k8s.io"]
+      kinds: [Role]

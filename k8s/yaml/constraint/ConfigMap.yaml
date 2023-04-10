@@ -1,0 +1,9 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: validate-configmap
+metadata:
+  name: validate-configmap
+spec:
+  match:
+    kinds:
+    - apiGroups: [""]
+      kinds: [ConfigMap]

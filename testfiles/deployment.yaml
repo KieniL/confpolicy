@@ -9,7 +9,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: unittest-ansparservice
-  namespace: test
+  namespace: default
   labels:
     app.kubernetes.io/name: unittest-ansparservice
     app.kubernetes.io/instance: unittest-ansparservice
@@ -30,15 +30,6 @@ spec:
         action: jwt-consumer
     spec:
       serviceAccountName: unittest-ansparservice-sa
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  app: unittest-ansparservice
-              topologyKey: kubernetes.io/hostname
-            weight: 100
       terminationGracePeriodSeconds: 40
       volumes:
       - name: tmp

@@ -6,7 +6,7 @@ namespace = input.metadata.namespace
 
 name = input.metadata.name
 
-data = input.data
+content = input.data
 
 deny[msg] {
 	kubernetes.is_configmap
@@ -24,7 +24,7 @@ deny[msg] {
 
 deny[msg] {
 	kubernetes.is_configmap
-	not data
+	not content
 
-	msg := sprintf("Does not contain data section in configmap %v", [input])
+	msg := sprintf("Does not contain data section in configmap %v", [name])
 }

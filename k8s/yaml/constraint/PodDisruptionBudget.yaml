@@ -1,0 +1,9 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: validate-poddisruptionbudget
+metadata:
+  name: validate-poddisruptionbudget
+spec:
+  match:
+    kinds:
+    - apiGroups: ["policy"]
+      kinds: [PodDisruptionBudget]

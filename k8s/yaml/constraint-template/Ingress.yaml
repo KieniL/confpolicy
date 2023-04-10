@@ -1,0 +1,164 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: validate-ingress
+spec:
+  crd:
+    spec:
+      names:
+        kind: validate-ingress
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package main
+        
+        
+        name = input.review.object.metadata.name
+        
+        namespace = input.review.object.metadata.namespace
+        
+        annotations = input.review.object.metadata.annotations
+        
+        spec = input.review.object.spec
+        
+        violation[{"msg": msg}] {
+        	not spec.tls
+        
+        	msg = sprintf("ingress %v is not secured by tls", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not spec.rules
+        
+        	msg = sprintf("ingress %v has not rules section provided", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not annotations
+        
+        	msg = sprintf("ingress %v does not have any annotations", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not annotations["nginx.ingress.kubernetes.io/limit-rps"]
+        	not annotations["nginx.ingress.kubernetes.io/limit-rpm"]
+        
+        	msg = sprintf("ingress %v needs to have a limit-per-seconds and limit-per-minutes to mitigate DDoS. See https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#rate-limiting", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	annotations["nginx.ingress.kubernetes.io/limit-rps"]
+        	not annotations["nginx.ingress.kubernetes.io/limit-rpm"]
+        
+        	msg = sprintf("ingress %v only has limit-rps needs to have a limit-per-seconds and limit-per-minutes to mitigate DDoS. See https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#rate-limiting", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not annotations["nginx.ingress.kubernetes.io/limit-rps"]
+        	annotations["nginx.ingress.kubernetes.io/limit-rpm"]
+        
+        	msg = sprintf("ingress %v only has limit-rpm needs to have a limit-per-seconds and limit-per-minutes to mitigate DDoS. See https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#rate-limiting", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not annotations["nginx.ingress.kubernetes.io/enable-modsecurity"]
+        
+        	msg = sprintf("ingress %v does not have enable-modsecurity for nginx ingess set. See https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#enable-modsecurity", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not annotations["nginx.ingress.kubernetes.io/enable-modsecurity"] = "true"
+        
+        	msg = sprintf("ingress %v does not have enable-modsecurity for nginx ingess enabled. See https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#enable-modsecurity", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not annotations["nginx.ingress.kubernetes.io/enable-owasp-core-rules"]
+        
+        	msg = sprintf("ingress %v does not have enable-owasp-core-rules for nginx ingess set. See https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#modsecurity", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not annotations["nginx.ingress.kubernetes.io/enable-owasp-core-rules"] = "true"
+        
+        	msg = sprintf("ingress %v does not have enable-owasp-core-rules for nginx ingess enabled. See https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#modsecurity", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not annotations["nginx.ingress.kubernetes.io/enable-owasp-modsecurity-crs"]
+        
+        	msg = sprintf("ingress %v does not have enable-owasp-core-rules for nginx ingess set. See https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#modsecurity-snippet", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not annotations["nginx.ingress.kubernetes.io/enable-owasp-modsecurity-crs"] = "true"
+        
+        	msg = sprintf("ingress %v does not have enable-owasp-core-rules for nginx ingess enabled. See https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#modsecurity-snippet", [name])
+        }
+        
+        required_labels {
+        	input.review.object.metadata.labels["app.kubernetes.io/name"]
+        	input.review.object.metadata.labels["app.kubernetes.io/instance"]
+        	input.review.object.metadata.labels["app.kubernetes.io/version"]
+        	input.review.object.metadata.labels["app.kubernetes.io/component"]
+        	input.review.object.metadata.labels["app.kubernetes.io/part-of"]
+        	input.review.object.metadata.labels["app.kubernetes.io/managed-by"]
+        }
+        
+        # a list of ressources which needes a serviceaccount
+        serviceaccount_needed = [
+        	"unittest-ansparservice",
+        	"unittest-authservice",
+        	"unittest-certservice",
+        	"unittest-mysql",
+        ]
+        
+        allowed_kinds = [
+        	"ConfigMap",
+        	"Secret",
+        	"Service",
+        	"Deployment",
+        	"PersistentVolume",
+        	"PersistentVolumeClaim",
+        	"HorizontalPodAutoscaler",
+        	"Ingress",
+        	"Job",
+        	"Role",
+        	"RoleBinding",
+        	"ServiceAccount",
+        	"PodDisruptionBudget",
+        	"NetworkPolicy",
+        	"Pod",
+        	"PodSecurityPolicy",
+        ]
+        
+        allowed_subject_kinds = [
+        	"ServiceAccount",
+        	"Group",
+        ]
+        
+        trusted_registries = [
+        	"luke19",
+        	"curlimages",
+        ]
+        
+        violation[{"msg": msg}] {
+        	not required_labels
+        	msg = sprintf("%s of kind %s must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels", [name, input.review.object.kind])
+        }
+        
+        exists_in_list(element, list) {
+        	val := list[_]
+        	element == val
+        }
+        
+        violation[{"msg": msg}] {
+        	val := input.review.object.kind
+        	not exists_in_list(input.review.object.kind, allowed_kinds)
+        
+        	msg = sprintf("%v is not a allowed kind", [val])
+        }
+        
+        startswith_in_list(element, list) {
+        	startswith(element, list[_])
+        }

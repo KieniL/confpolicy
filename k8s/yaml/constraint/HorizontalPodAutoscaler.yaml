@@ -1,0 +1,9 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: validate-horizontalpodautoscaler
+metadata:
+  name: validate-horizontalpodautoscaler
+spec:
+  match:
+    kinds:
+    - apiGroups: ["autoscaling"]
+      kinds: [HorizontalPodAutoscaler]
