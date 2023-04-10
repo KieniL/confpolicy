@@ -41,11 +41,6 @@ allowed_subject_kinds = [
 	"Group",
 ]
 
-trusted_registries = [
-	"luke19",
-	"curlimages",
-]
-
 deny[msg] {
 	not required_labels
 	msg = sprintf("%s of kind %s must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels", [name, input.kind])
@@ -61,8 +56,4 @@ deny_not_allowed_kind[msg] {
 	not exists_in_list(input.kind, allowed_kinds)
 
 	msg = sprintf("%v is not a allowed kind", [val])
-}
-
-startswith_in_list(element, list) {
-	startswith(element, list[_])
 }

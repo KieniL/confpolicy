@@ -26,15 +26,26 @@ mkdir -p "$output_folder"/tmp/
 mkdir -p "$output_folder"/constraint-template/
 mkdir -p "$output_folder"/constraint/
 
+
+# read general content for pasting it into the other rego file
+cp $folder_path/general.rego $output_folder/tmp/general.rego
+
+# read trusted registry content for pasting it into the other rego file
+cp registries//container_trusted_registries.rego $output_folder/tmp/container_trusted_registries.rego
+
+# Remove lines starting with "package" for the general.rego and the trusted_registries file
+sed -i '/^package/d' "$output_folder/tmp/general.rego"
+sed -i '/^package/d' "$output_folder/tmp/container_trusted_registries.rego"
+
+general=$(cat $output_folder/tmp/general.rego)
+trusted_registries=$(cat $output_folder/tmp/container_trusted_registries.rego)
+
 for file in "$folder_path"/*.rego; do
 
     if [[ -f "$file" ]]; then
 
       filename=$(basename "$file" .rego)
       outputfile=$output_folder/tmp/$filename.rego
-
-
-
 
       # ignore the general and utility file
       if [ "$filename" == "utility" ] || [ "$filename" == "general" ] ; then
@@ -43,15 +54,9 @@ for file in "$folder_path"/*.rego; do
 
       cp $file $outputfile
 
-      # read general content for pasting it into the other rego file
-      cp $folder_path/general.rego $output_folder/tmp/general.rego
-
-      # Remove lines starting with "package" for the general.rego file
-      sed -i '/^package/d' "$output_folder/tmp/general.rego"
-      
-      general=$(cat $output_folder/tmp/general.rego)
 
       echo "$general" >> $outputfile
+      echo "$trusted_registries" >> $outputfile
 
       # Remove lines starting with "import"
       sed -i '/^import/d' "$outputfile"

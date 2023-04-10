@@ -319,11 +319,6 @@ spec:
         	"Group",
         ]
         
-        trusted_registries = [
-        	"luke19",
-        	"curlimages",
-        ]
-        
         violation[{"msg": msg}] {
         	not required_labels
         	msg = sprintf("%s of kind %s must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels", [name, input.review.object.kind])
@@ -340,6 +335,12 @@ spec:
         
         	msg = sprintf("%v is not a allowed kind", [val])
         }
+        
+        trusted_registries = [
+        	"luke19",
+        	"curlimages",
+        	"test"
+        ]
         
         startswith_in_list(element, list) {
         	startswith(element, list[_])
