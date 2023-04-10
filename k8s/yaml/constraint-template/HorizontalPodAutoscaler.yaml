@@ -1,0 +1,135 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: validate-horizontalpodautoscaler
+spec:
+  crd:
+    spec:
+      names:
+        kind: validate-horizontalpodautoscaler
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package main
+        
+        
+        name = input.review.object.metadata.name
+        
+        namespace = input.review.object.metadata.namespace
+        
+        spec = input.review.object.spec
+        
+        scaleRef = input.review.object.spec.scaleTargetRef
+        
+        required_selector_labels {
+        	spec.selector.app
+        }
+        
+        violation[{"msg": msg}] {
+        	not scaleRef
+        
+        	msg := sprintf("horizontalpodautoscaler %v does not have a scaleTargetRef", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not scaleRef.apiVersion
+        
+        	msg := sprintf("scaleTargetRef in horizontalpodautoscaler %v does not have an apiVersion provided", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not scaleRef.kind
+        
+        	msg := sprintf("scaleTargetRef in horizontalpodautoscaler %v does not have an kind provided", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not scaleRef.name
+        
+        	msg := sprintf("scaleTargetRef in horizontalpodautoscaler %v does not have an name provided", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not spec.minReplicas
+        
+        	msg := sprintf("horizontalpodautoscaler %v does not have minReplicas provided", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not spec.maxReplicas
+        
+        	msg := sprintf("horizontalpodautoscaler %v does not have maxReplicas provided", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not spec.metrics
+        
+        	msg := sprintf("horizontalpodautoscaler %v does not have a metrics section provided", [name])
+        }
+        
+        required_labels {
+        	input.review.object.metadata.labels["app.kubernetes.io/name"]
+        	input.review.object.metadata.labels["app.kubernetes.io/instance"]
+        	input.review.object.metadata.labels["app.kubernetes.io/version"]
+        	input.review.object.metadata.labels["app.kubernetes.io/component"]
+        	input.review.object.metadata.labels["app.kubernetes.io/part-of"]
+        	input.review.object.metadata.labels["app.kubernetes.io/managed-by"]
+        }
+        
+        # a list of ressources which needes a serviceaccount
+        serviceaccount_needed = [
+        	"unittest-ansparservice",
+        	"unittest-authservice",
+        	"unittest-certservice",
+        	"unittest-mysql",
+        ]
+        
+        allowed_kinds = [
+        	"ConfigMap",
+        	"Secret",
+        	"Service",
+        	"Deployment",
+        	"PersistentVolume",
+        	"PersistentVolumeClaim",
+        	"HorizontalPodAutoscaler",
+        	"Ingress",
+        	"Job",
+        	"Role",
+        	"RoleBinding",
+        	"ServiceAccount",
+        	"PodDisruptionBudget",
+        	"NetworkPolicy",
+        	"Pod",
+        	"PodSecurityPolicy",
+        ]
+        
+        allowed_subject_kinds = [
+        	"ServiceAccount",
+        	"Group",
+        ]
+        
+        trusted_registries = [
+        	"luke19",
+        	"curlimages",
+        ]
+        
+        violation[{"msg": msg}] {
+        	not required_labels
+        	msg = sprintf("%s of kind %s must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels", [name, input.review.object.kind])
+        }
+        
+        exists_in_list(element, list) {
+        	val := list[_]
+        	element == val
+        }
+        
+        violation[{"msg": msg}] {
+        	val := input.review.object.kind
+        	not exists_in_list(input.review.object.kind, allowed_kinds)
+        
+        	msg = sprintf("%v is not a allowed kind", [val])
+        }
+        
+        startswith_in_list(element, list) {
+        	startswith(element, list[_])
+        }

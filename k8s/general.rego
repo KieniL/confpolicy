@@ -1,4 +1,4 @@
-package kubernetes
+package main
 
 required_labels {
 	input.metadata.labels["app.kubernetes.io/name"]
@@ -7,11 +7,6 @@ required_labels {
 	input.metadata.labels["app.kubernetes.io/component"]
 	input.metadata.labels["app.kubernetes.io/part-of"]
 	input.metadata.labels["app.kubernetes.io/managed-by"]
-}
-
-deny[msg] {
-	not required_labels
-	msg = sprintf("%s of kind %s must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels", [name, input.kind])
 }
 
 # a list of ressources which needes a serviceaccount
@@ -46,6 +41,16 @@ allowed_subject_kinds = [
 	"Group",
 ]
 
+trusted_registries = [
+	"luke19",
+	"curlimages",
+]
+
+deny[msg] {
+	not required_labels
+	msg = sprintf("%s of kind %s must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels", [name, input.kind])
+}
+
 exists_in_list(element, list) {
 	val := list[_]
 	element == val
@@ -58,66 +63,6 @@ deny_not_allowed_kind[msg] {
 	msg = sprintf("%v is not a allowed kind", [val])
 }
 
-is_service {
-	input.kind = "Service"
-}
-
-is_deployment {
-	input.kind = "Deployment"
-}
-
-is_configmap {
-	input.kind = "ConfigMap"
-}
-
-is_secret {
-	input.kind = "Secret"
-}
-
-is_pv {
-	input.kind = "PersistentVolume"
-}
-
-is_pvc {
-	input.kind = "PersistentVolumeClaim"
-}
-
-is_ingress {
-	input.kind = "Ingress"
-}
-
-is_nginx_ingress {
-	input.metadata.annotations["kubernetes.io/ingress.class"] = "nginx"
-}
-
-is_hpa {
-	input.kind = "HorizontalPodAutoscaler"
-}
-
-is_job {
-	input.kind = "Job"
-}
-
-is_role {
-	input.kind = "Role"
-}
-
-is_role_binding {
-	input.kind = "RoleBinding"
-}
-
-is_service_account {
-	input.kind = "ServiceAccount"
-}
-
-is_pod {
-	input.kind = "Pod"
-}
-
-is_poddisruptionbudget {
-	input.kind = "PodDisruptionBudget"
-}
-
-is_networkpolicy {
-	input.kind = "NetworkPolicy"
+startswith_in_list(element, list) {
+	startswith(element, list[_])
 }

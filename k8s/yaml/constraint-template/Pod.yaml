@@ -1,0 +1,258 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: validate-pod
+spec:
+  crd:
+    spec:
+      names:
+        kind: validate-pod
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package main
+        
+        
+        name = input.review.object.metadata.name
+        
+        namespace = input.review.object.metadata.namespace
+        
+        spec = input.review.object.spec
+        
+        containers = input.review.object.spec.containers
+        
+        violation[{"msg": msg}] {
+        	not name
+        
+        	msg := sprintf("pod %v has no name provided", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not namespace
+        
+        	msg := sprintf("pod %v has no namespace provided", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not containers
+        
+        	msg := sprintf("pod %v has no containers provided", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not spec.terminationGracePeriodSeconds
+        
+        	msg := sprintf("Pod %v has no terminationGracePeriodSeconds provided which should be there for a graceful shutdown", [name])
+        }
+        
+        warn[msg] {
+        	spec.terminationGracePeriodSeconds > 50
+        
+        	msg := sprintf("Pod %v has a terminationGracePeriodSeconds above 50 seconds (reality: %v). This could lead to a long waiting before SIGKILL", [name, spec.terminationGracePeriodSeconds])
+        }
+        
+        warn[msg] {
+        	not count(containers) <= 1
+        
+        	msg = sprintf("pod %v has more than one container. Should not be done due to scaling. Use it wisely.", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	container := containers[_]
+        	not container.name
+        
+        	msg := sprintf("at least one container in pod %v has no name", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	container := containers[_]
+        	not container.image
+        
+        	msg := sprintf("at least one container in pod %v has no image", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	container := containers[_]
+        	not container.imagePullPolicy
+        
+        	msg := sprintf("at least one container in pod %v has no imagePullPolicy", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	container := containers[_]
+        	not container.resources
+        
+        	msg := sprintf("at least one container in pod %v has no resources section", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	container := containers[_]
+        	not container.resources.limits
+        
+        	msg := sprintf("at least one container in pod %v has no resources limits section", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	container := containers[_]
+        	not container.resources.requests
+        
+        	msg := sprintf("at least one container in pod %v has no resources requests section", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	container := containers[_]
+        	not container.resources.limits.memory
+        
+        	msg := sprintf("at least one container in pod %v has no memory limits section", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	container := containers[_]
+        	not container.resources.requests.memory
+        
+        	msg := sprintf("at least one container in pod %v has no memory requests section", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	container := containers[_]
+        	not container.resources.requests.cpu
+        
+        	msg := sprintf("at least one container in pod %v has no cpu requests section", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not spec.affinity
+        
+        	msg = sprintf("pod %v does not have an affinity section", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not spec.affinity.podAntiAffinity
+        
+        	msg = sprintf("pod %v does not have an podAnitAffinity section", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	image := containers[_].image
+        	not startswith_in_list(image, trusted_registries)
+        
+        	msg := sprintf("at least one containerimage in pod %v is not from the allowed source", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	imagetag := split(containers[_].image, "@")
+        	count(imagetag) == 1
+        
+        	msg := sprintf("imagetags are used instead of hash for pod %v", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	imagetag := split(containers[_].image, "@")[1]
+        	not startswith(imagetag, "sha256")
+        
+        	msg := sprintf("use sha256 instead of tagname to prevent usage of multiple pushed images for pod %v", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not exists_in_list(name, serviceaccount_needed)
+        	not spec.automountServiceAccountToken == false
+        
+        	msg := sprintf("pod %v uses the automounted serviceaccount but doesn't need to. Please disable it with automountServiceAccountToken: false ", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	exists_in_list(name, serviceaccount_needed)
+        	spec.serviceAccountName == "default"
+        	spec.automountServiceAccountToken == false
+        
+        	msg := sprintf("pod %v has the automount of serviceaccounts disabled. The set serviceAccountName will not be used.", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	exists_in_list(name, serviceaccount_needed)
+        	spec.serviceAccountName == "default"
+        	not spec.automountServiceAccountToken == false
+        
+        	msg := sprintf("pod %v uses the default serviceaccount. Please create a separate one based on Least Privilege.", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	emptyDir := spec.volumes[_].emptyDir
+        	not emptyDir.sizeLimit
+        
+        	msg := sprintf("at least one emptydir volume in pod %v does not have a sizelimit ", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	container := containers[_]
+        	container.securityContext.privileged == true
+        
+        	msg := sprintf("at least one container in job %v is privileged which is not allowed", [name])
+        }
+        
+        required_labels {
+        	input.review.object.metadata.labels["app.kubernetes.io/name"]
+        	input.review.object.metadata.labels["app.kubernetes.io/instance"]
+        	input.review.object.metadata.labels["app.kubernetes.io/version"]
+        	input.review.object.metadata.labels["app.kubernetes.io/component"]
+        	input.review.object.metadata.labels["app.kubernetes.io/part-of"]
+        	input.review.object.metadata.labels["app.kubernetes.io/managed-by"]
+        }
+        
+        # a list of ressources which needes a serviceaccount
+        serviceaccount_needed = [
+        	"unittest-ansparservice",
+        	"unittest-authservice",
+        	"unittest-certservice",
+        	"unittest-mysql",
+        ]
+        
+        allowed_kinds = [
+        	"ConfigMap",
+        	"Secret",
+        	"Service",
+        	"Deployment",
+        	"PersistentVolume",
+        	"PersistentVolumeClaim",
+        	"HorizontalPodAutoscaler",
+        	"Ingress",
+        	"Job",
+        	"Role",
+        	"RoleBinding",
+        	"ServiceAccount",
+        	"PodDisruptionBudget",
+        	"NetworkPolicy",
+        	"Pod",
+        	"PodSecurityPolicy",
+        ]
+        
+        allowed_subject_kinds = [
+        	"ServiceAccount",
+        	"Group",
+        ]
+        
+        trusted_registries = [
+        	"luke19",
+        	"curlimages",
+        ]
+        
+        violation[{"msg": msg}] {
+        	not required_labels
+        	msg = sprintf("%s of kind %s must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels", [name, input.review.object.kind])
+        }
+        
+        exists_in_list(element, list) {
+        	val := list[_]
+        	element == val
+        }
+        
+        violation[{"msg": msg}] {
+        	val := input.review.object.kind
+        	not exists_in_list(input.review.object.kind, allowed_kinds)
+        
+        	msg = sprintf("%v is not a allowed kind", [val])
+        }
+        
+        startswith_in_list(element, list) {
+        	startswith(element, list[_])
+        }

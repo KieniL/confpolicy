@@ -1,0 +1,9 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: validate-ingress
+metadata:
+  name: validate-ingress
+spec:
+  match:
+    kinds:
+    - apiGroups: ["networking.k8s.io"]
+      kinds: [Ingress]

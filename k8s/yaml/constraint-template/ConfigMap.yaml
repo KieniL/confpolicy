@@ -1,0 +1,105 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: validate-configmap
+spec:
+  crd:
+    spec:
+      names:
+        kind: validate-configmap
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package main
+        
+        
+        namespace = input.review.object.metadata.namespace
+        
+        name = input.review.object.metadata.name
+        
+        content = input.review.object.data
+        
+        violation[{"msg": msg}] {
+        	not name
+        
+        	msg := sprintf("configmap %v has no name provided", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not namespace
+        
+        	msg := sprintf("configmap %v has no namespace provided", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not content
+        
+        	msg := sprintf("Does not contain data section in configmap %v", [name])
+        }
+        
+        required_labels {
+        	input.review.object.metadata.labels["app.kubernetes.io/name"]
+        	input.review.object.metadata.labels["app.kubernetes.io/instance"]
+        	input.review.object.metadata.labels["app.kubernetes.io/version"]
+        	input.review.object.metadata.labels["app.kubernetes.io/component"]
+        	input.review.object.metadata.labels["app.kubernetes.io/part-of"]
+        	input.review.object.metadata.labels["app.kubernetes.io/managed-by"]
+        }
+        
+        # a list of ressources which needes a serviceaccount
+        serviceaccount_needed = [
+        	"unittest-ansparservice",
+        	"unittest-authservice",
+        	"unittest-certservice",
+        	"unittest-mysql",
+        ]
+        
+        allowed_kinds = [
+        	"ConfigMap",
+        	"Secret",
+        	"Service",
+        	"Deployment",
+        	"PersistentVolume",
+        	"PersistentVolumeClaim",
+        	"HorizontalPodAutoscaler",
+        	"Ingress",
+        	"Job",
+        	"Role",
+        	"RoleBinding",
+        	"ServiceAccount",
+        	"PodDisruptionBudget",
+        	"NetworkPolicy",
+        	"Pod",
+        	"PodSecurityPolicy",
+        ]
+        
+        allowed_subject_kinds = [
+        	"ServiceAccount",
+        	"Group",
+        ]
+        
+        trusted_registries = [
+        	"luke19",
+        	"curlimages",
+        ]
+        
+        violation[{"msg": msg}] {
+        	not required_labels
+        	msg = sprintf("%s of kind %s must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels", [name, input.review.object.kind])
+        }
+        
+        exists_in_list(element, list) {
+        	val := list[_]
+        	element == val
+        }
+        
+        violation[{"msg": msg}] {
+        	val := input.review.object.kind
+        	not exists_in_list(input.review.object.kind, allowed_kinds)
+        
+        	msg = sprintf("%v is not a allowed kind", [val])
+        }
+        
+        startswith_in_list(element, list) {
+        	startswith(element, list[_])
+        }

@@ -42,7 +42,7 @@ warn[msg] {
 	kubernetes.is_pod
 	spec.terminationGracePeriodSeconds > 50
 
-	msg := sprintf("Pod %v has a terminationGracePeriodSeconds above 50 seconds (reality: %v). This could lead to a long waiting before SIGKILL", [name, template_spec.terminationGracePeriodSeconds])
+	msg := sprintf("Pod %v has a terminationGracePeriodSeconds above 50 seconds (reality: %v). This could lead to a long waiting before SIGKILL", [name, spec.terminationGracePeriodSeconds])
 }
 
 warn[msg] {

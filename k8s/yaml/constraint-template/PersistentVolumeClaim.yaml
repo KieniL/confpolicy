@@ -1,0 +1,126 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: validate-persistentvolumeclaim
+spec:
+  crd:
+    spec:
+      names:
+        kind: validate-persistentvolumeclaim
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package main
+        
+        
+        name = input.review.object.metadata.name
+        
+        namespace = input.review.object.metadata.namespace
+        
+        spec = input.review.object.spec
+        
+        violation[{"msg": msg}] {
+        	not spec.storageClassName == "manual"
+        
+        	msg := sprintf("StorageclassName should be manual in pv %v", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not spec.resources
+        
+        	msg := sprintf("Resource should be present in pvc %v", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not spec.resources.requests
+        
+        	msg := sprintf("Resource.requests should be present in pvc %v", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not spec.resources.requests.storage
+        
+        	msg := sprintf("Resource.requests.storage should be present in pvc %v", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	contains(spec.resources.requests.storage, "Gi")
+        	to_number(split(lower(spec.resources.requests.storage), "gi")[0], storagesize)
+        	not storagesize <= 100
+        	type_name(storagesize, types)
+        
+        	msg := sprintf("Storage above 100Gi is not allowd in pvc %v", [name])
+        }
+        
+        violation[{"msg": msg}] {
+        	not spec.storageClassName == "manual"
+        
+        	msg := sprintf("StorageclassName should be manual in pvc %v", [name])
+        }
+        
+        required_labels {
+        	input.review.object.metadata.labels["app.kubernetes.io/name"]
+        	input.review.object.metadata.labels["app.kubernetes.io/instance"]
+        	input.review.object.metadata.labels["app.kubernetes.io/version"]
+        	input.review.object.metadata.labels["app.kubernetes.io/component"]
+        	input.review.object.metadata.labels["app.kubernetes.io/part-of"]
+        	input.review.object.metadata.labels["app.kubernetes.io/managed-by"]
+        }
+        
+        # a list of ressources which needes a serviceaccount
+        serviceaccount_needed = [
+        	"unittest-ansparservice",
+        	"unittest-authservice",
+        	"unittest-certservice",
+        	"unittest-mysql",
+        ]
+        
+        allowed_kinds = [
+        	"ConfigMap",
+        	"Secret",
+        	"Service",
+        	"Deployment",
+        	"PersistentVolume",
+        	"PersistentVolumeClaim",
+        	"HorizontalPodAutoscaler",
+        	"Ingress",
+        	"Job",
+        	"Role",
+        	"RoleBinding",
+        	"ServiceAccount",
+        	"PodDisruptionBudget",
+        	"NetworkPolicy",
+        	"Pod",
+        	"PodSecurityPolicy",
+        ]
+        
+        allowed_subject_kinds = [
+        	"ServiceAccount",
+        	"Group",
+        ]
+        
+        trusted_registries = [
+        	"luke19",
+        	"curlimages",
+        ]
+        
+        violation[{"msg": msg}] {
+        	not required_labels
+        	msg = sprintf("%s of kind %s must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels", [name, input.review.object.kind])
+        }
+        
+        exists_in_list(element, list) {
+        	val := list[_]
+        	element == val
+        }
+        
+        violation[{"msg": msg}] {
+        	val := input.review.object.kind
+        	not exists_in_list(input.review.object.kind, allowed_kinds)
+        
+        	msg = sprintf("%v is not a allowed kind", [val])
+        }
+        
+        startswith_in_list(element, list) {
+        	startswith(element, list[_])
+        }
