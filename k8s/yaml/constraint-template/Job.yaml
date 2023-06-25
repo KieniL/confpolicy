@@ -186,6 +186,7 @@ spec:
         	"unittest-authservice",
         	"unittest-certservice",
         	"unittest-mysql",
+        	"vault-demoapp",
         ]
         
         allowed_kinds = [
@@ -210,6 +211,12 @@ spec:
         allowed_subject_kinds = [
         	"ServiceAccount",
         	"Group",
+        ]
+        
+        bad_commands = [
+        	"nc",
+        	"netcat",
+        	"ncat"
         ]
         
         violation[{"msg": msg}] {

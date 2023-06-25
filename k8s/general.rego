@@ -15,6 +15,7 @@ serviceaccount_needed = [
 	"unittest-authservice",
 	"unittest-certservice",
 	"unittest-mysql",
+	"vault-demoapp",
 ]
 
 allowed_kinds = [
@@ -39,6 +40,12 @@ allowed_kinds = [
 allowed_subject_kinds = [
 	"ServiceAccount",
 	"Group",
+]
+
+bad_commands = [
+	"nc",
+	"netcat",
+	"ncat"
 ]
 
 deny[msg] {

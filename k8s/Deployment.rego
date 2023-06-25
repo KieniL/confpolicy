@@ -278,6 +278,84 @@ deny[msg] {
 	msg := sprintf("at least one emptydir volume in deployment %v does not have a sizelimit ", [name])
 }
 
+deny[msg] {
+	kubernetes.is_deployment
+	hostPath := template_spec.volumes[_].hostPath
+	hostPath
+
+	msg := sprintf("at least one volume in deployment %v does have a hostPath mounting. Ensure that this is not done to prevent full hostpath mounting.", [name])
+}
+
+deny[msg] {
+	kubernetes.is_deployment
+	template_spec.hostNetwork
+	not template_spec.hostNetwork == "false"
+	
+	msg := sprintf("deployment %v has hostNetwork set to true.", [name])
+}
+
+deny[msg] {
+	kubernetes.is_deployment
+	template_spec.hostPID
+	not template_spec.hostPID == "false"
+	
+	msg := sprintf("deployment %v has hostPID set to true.", [name])
+}
+
+deny[msg] {
+	kubernetes.is_deployment
+	template_spec.hostIPC
+	not template_spec.hostIPC == "false"
+	
+	msg := sprintf("deployment %v has hostIPC set to true.", [name])
+}
+
+
+deny[msg] {
+	kubernetes.is_deployment
+	container := input.spec.template.spec.containers[_]
+	container.command
+	not container.args
+	commands := container.command[_]
+	contains(lower(commands), bad_commands[_])
+
+	msg := sprintf("deployment %v runs a bad command in command %v.", [name, commands])
+}
+
+deny[msg] {
+	kubernetes.is_deployment
+	container := input.spec.template.spec.containers[_]
+	not container.command
+	container.args
+	commands := container.args[_]
+	contains(lower(commands), bad_commands[_])
+
+	msg := sprintf("deployment %v runs a bad command in args %v.", [name, commands])
+}
+
+deny[msg] {
+	kubernetes.is_deployment
+	container := input.spec.template.spec.containers[_]
+	container.command
+	container.args
+	commands := container.command[_]
+	contains(lower(commands), bad_commands[_])
+
+	msg := sprintf("deployment %v runs a bad command in command %v.", [name, commands])
+}
+
+
+deny[msg] {
+	kubernetes.is_deployment
+	container := input.spec.template.spec.containers[_]
+	container.command
+	container.args
+	commands := container.args[_]
+	contains(lower(commands), bad_commands[_])
+
+	msg := sprintf("deployment %v runs a bad command in args %v.", [name, commands])
+}
+
 deny_missing_liveness[msg] {
 	kubernetes.is_deployment
 	container := input.spec.template.spec.containers[_]
