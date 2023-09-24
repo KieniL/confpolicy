@@ -1,5 +1,7 @@
 # conftest
 
+> **_DISCLAIMER_** This repository also contains rules Related to my cluster like deployment names or allowed registries. Since this might not fit your needs feel free to fork and remove the unnecessary stuff but still receive one of the irregular Updates.
+
 ## Testing
 
 Add a a file into testfiles and then run <br/>
